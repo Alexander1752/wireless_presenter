@@ -18,7 +18,7 @@ keyboard = KController()
 mouse = MController()
 
 COMMANDS = {
-    "f": lambda: keyboard.press(Key.space) or keyboard.release(Key.space),
+    "P": lambda: keyboard.press(Key.space) or keyboard.release(Key.space),
     "e": lambda: keyboard.press(Key.esc) or keyboard.release(Key.esc),
     "l": lambda: keyboard.press(Key.left) or keyboard.release(Key.left),
     "r": lambda: keyboard.press(Key.right) or keyboard.release(Key.right),
@@ -27,7 +27,7 @@ COMMANDS = {
     "d": lambda: keyboard.press(Key.media_volume_down) or keyboard.release(Key.media_volume_down),
     "p": lambda: exec("with keyboard.pressed(Key.shift): keyboard.press('p') or keyboard.release('p')"),
     "n": lambda: exec("with keyboard.pressed(Key.shift): keyboard.press('n') or keyboard.release('n')"),
-    "a": lambda: exec("with keyboard.pressed(Key.shift): keyboard.press(Key.f5) or keyboard.release(Key.f5)"),
+    "f": lambda: exec("with keyboard.pressed(Key.shift): keyboard.press(Key.f5) or keyboard.release(Key.f5)"),
     "POWERPOINT": lambda: cmd(['C:/Program Files/Microsoft Office/root/Office16/POWERPNT.EXE'])
 }
 
@@ -160,18 +160,21 @@ def serial_loop(port: str):
             else:
                 cmd_list = command.split()
                 if len(cmd_list) >= 3 and cmd_list[0][0] == 'A':
-                    x = int(cmd_list[1])
-                    y = int(cmd_list[2])
+                    try:
+                        x = int(cmd_list[1])
+                        y = int(cmd_list[2])
 
-                    if first:
-                        first = False
+                        if first:
+                            first = False
+                            prev_x = x
+                            prev_y = y
+
+                        mouse.move(PROCENT *(x - prev_x), PROCENT * (y - prev_y))
+                        
                         prev_x = x
                         prev_y = y
-
-                    mouse.move(PROCENT *(x - prev_x), PROCENT * (y - prev_y))
-                    
-                    prev_x = x
-                    prev_y = y
+                    except:
+                        pass
             command = b''
 
 def disconnect():

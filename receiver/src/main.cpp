@@ -12,13 +12,16 @@ void setup() {
     PORTB &= ~(1 << PB5); // turn LED off
 }
 
+uint8_t buf[VW_MAX_MESSAGE_LEN + 1];
+uint8_t buflen;
+
 void loop() {
-    uint8_t buf[VW_MAX_MESSAGE_LEN];
-    uint8_t buflen = VW_MAX_MESSAGE_LEN;
+    buflen = VW_MAX_MESSAGE_LEN;
 
     if (vw_get_message(buf, &buflen)) { // Non-blocking
         PORTB &= ~(1 << PB5); // flash onboard LED to show received good message
-        printf("%c\n", buf[0]);
+        buf[buflen] = '\0';
+        printf("%s\n", buf);
         PORTB &= ~(1 << PB5); // turn LED off
     }
 }

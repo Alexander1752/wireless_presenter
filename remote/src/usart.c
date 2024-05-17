@@ -20,11 +20,20 @@ void USART0_init(unsigned int ubrr)
     UBRR0H = (unsigned char)(ubrr>>8);
     UBRR0L = (unsigned char)ubrr;
 
-    /* enable TX and RX */
-    UCSR0B = (1<<RXEN0) | (1<<TXEN0);
+    USART0_enable();
 
     /* frame format: 8 bits, 2 stop, no parity */
     UCSR0C = (1<<USBS0) | (3<<UCSZ00);
+}
+
+void USART0_enable() {
+    /* enable TX and RX */
+    UCSR0B = (1<<RXEN0) | (1<<TXEN0);
+}
+
+void USART0_disable() {
+    /* disable TX and RX */
+    UCSR0B = ~((1<<RXEN0) | (1<<TXEN0));
 }
 
 /** Replaces the default stdout with our USART implementation. */

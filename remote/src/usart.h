@@ -16,6 +16,16 @@ extern "C" {
  */
 void USART0_init(unsigned int ubrr);
 
+/*
+ * Enable USART communication
+ */
+void USART0_enable();
+
+/*
+ * Disable USART communication
+ */
+void USART0_disable();
+
 /** Replaces the default stdout with our USART implementation. */
 void USART0_use_stdio(void);
 
