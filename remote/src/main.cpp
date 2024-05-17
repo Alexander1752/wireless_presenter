@@ -3,8 +3,9 @@
 #include <avr/wdt.h>
 
 #include "usart.h"
-#include "debug.h"
 #include "buttons.h"
+#include "mpu6050.h"
+#include "debug.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -12,12 +13,15 @@
 
 #define DEBOUNCE_DELAY 100
 
+#define LIMIT(x, L) ((x > L) ? (L) : ((x < -L) ? -L : x))
+#define MAX 18000
+
 volatile uint32_t mills = 0;
 
 uint8_t pinc = 0;
 uint8_t pind = 0;
 
-Button buttons[] ={
+Button buttons[] = {
     Button('T'), // touch
     Button('c'), // click
     Button('r'), // next
@@ -79,7 +83,7 @@ void enter_power_save() {
     }
 #endif
     /////////// we have to yet see about PR-TWI
-    PRR |= (1 << PRTIM1) | (1 << PRTWI);
+    PRR |= (1 << PRTIM1);// | (1 << PRTWI);
     sleep_enable();
     sleep_bod_disable();
     sei();
@@ -93,7 +97,7 @@ void enter_power_save() {
     }
 #endif
 
-    PRR &= ~(1 << PRTIM1) | (1 << PRTWI);
+    PRR &= ~(1 << PRTIM1);// | (1 << PRTWI);
 
     // cli();
 }
@@ -152,7 +156,7 @@ void setup(){
 
     set_sleep_mode(SLEEP_MODE_PWR_SAVE);
     ADCSRA = 0; // disable ADC
-    PRR |= (1 << PRTIM0) | (1 << PRADC); // enable power save for timer0 and ADC
+    PRR |= (1 << PRTIM0) | (1 << PRADC) | (1 << PRTWI); // enable power save for timer0, ADC and TWI
 
 #ifndef DEBUG
     PRR |= (1 << PRUSART0);
@@ -166,13 +170,14 @@ void setup(){
     enter_power_save();
 }
 
-unsigned long lastDebouncePrev = 0, lastDebounceNext = 0;
 unsigned long current_millis;
+int16_t ax = 0, az = 0, prev_ax = 0, prev_az = 0;
+uint8_t buf[VW_MAX_MESSAGE_LEN];
 
-void loop() {
+void check_buttons(int start = PD2, int end = PD6) {
     current_millis = milliseconds();
 
-    for (int i = 1; i <= 6; ++i) {
+    for (int i = start; i <= end; ++i) {
         if (buttons[i].pressed) {
             buttons[i].pressed = 0;
             if (current_millis - buttons[i].lastDebounce > DEBOUNCE_DELAY) {
@@ -183,6 +188,40 @@ void loop() {
 
             buttons[i].lastDebounce = current_millis;
         }
+    }
+}
+
+void loop() {
+    check_buttons();
+
+    if (buttons[TOUCH].pressed) {
+        buttons[TOUCH].pressed = 0;
+
+        PRR &= ~((1 << PRTWI) | (1 << PRTIM0));
+        twi_init();
+        MPU6050_start();
+
+        while (PINC & (1 << PC0)) {
+            MPU6050_read16(GX_REG, (int16_t*)&ax);
+            MPU6050_read16(GY_REG, (int16_t*)&az);
+
+            // int len = sprintf((char*)buf, "A %hd %hd", az, ax);
+            buf[0] = 'A';
+            int16_t *ptr = (int16_t*)(buf + 1);
+            ptr[0] = LIMIT(-az, MAX);
+            ptr[1] = LIMIT(ax, MAX);
+
+            vw_send(buf, 5);
+            vw_wait_tx(); // Wait until the whole message is gone
+            dprintf("\n%s\n\n", buf);
+
+            check_buttons(PD1, PD6);
+
+            delay(100);
+        }
+
+        MPU6050_stop();
+        PRR |= (1 << PRTWI)| (1 << PRTIM0);
     }
 
     enter_power_save();

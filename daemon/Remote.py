@@ -12,6 +12,7 @@ import logging as log
 from pynput.mouse import Button, Controller as MController
 from pynput.keyboard import Key, Controller as KController
 from subprocess import Popen as cmd
+from math import pow, copysign
 # log.basicConfig(level = log.INFO)
 
 keyboard = KController()
@@ -28,10 +29,12 @@ COMMANDS = {
     "p": lambda: exec("with keyboard.pressed(Key.shift): keyboard.press('p') or keyboard.release('p')"),
     "n": lambda: exec("with keyboard.pressed(Key.shift): keyboard.press('n') or keyboard.release('n')"),
     "f": lambda: exec("with keyboard.pressed(Key.shift): keyboard.press(Key.f5) or keyboard.release(Key.f5)"),
-    "POWERPOINT": lambda: cmd(['C:/Program Files/Microsoft Office/root/Office16/POWERPNT.EXE'])
+    "POWERPOINT": lambda: cmd(['C:/Program Files/Microsoft Office/root/Office16/POWERPNT.EXE']),
+    "c": lambda: mouse.press(Button.left) or mouse.release(Button.left),
 }
 
 PROCENT = 0.001
+BASE = 1.4
 
 FONT = ("Arial", 20)
 
@@ -163,16 +166,7 @@ def serial_loop(port: str):
                     try:
                         x = int(cmd_list[1])
                         y = int(cmd_list[2])
-
-                        if first:
-                            first = False
-                            prev_x = x
-                            prev_y = y
-
-                        mouse.move(PROCENT *(x - prev_x), PROCENT * (y - prev_y))
-                        
-                        prev_x = x
-                        prev_y = y
+                        mouse.move(copysign(pow(BASE, abs(PROCENT * x)), x), copysign(pow(BASE, abs(PROCENT * y)), y))
                     except:
                         pass
             command = b''
