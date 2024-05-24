@@ -61,13 +61,15 @@ ISR(PCINT1_vect) {
 
     if ((pinc & (1 << PC2)) == 0) {
         buttons[CLICK].pressed = 1;
-        buttonPressed = 1;
+    } else {
+        buttons[CLICK].released = 1;
     }
 
     if (pinc & (1 << PC0)) {
         buttons[TOUCH].pressed = 1;
-        buttonPressed = 1;
     }
+
+    buttonPressed = 1;
 }
 
 ISR(PCINT2_vect) {
@@ -209,6 +211,16 @@ static inline void check_buttons(int start = PD2, int end = PD6) {
     }
 }
 
+void check_laser() {
+    if (buttons[CLICK].pressed)
+        PORTC |= (1 << PC1);
+
+    if (buttons[CLICK].released)
+        PORTC &= ~(1 << PC1);
+
+    buttons[CLICK].pressed = buttons[CLICK].released = 0;
+}
+
 void loop() {
 LOOP_BEGINNING:
     enter_power_save();
@@ -218,6 +230,7 @@ LOOP_BEGINNING:
 
     buttonPressed = 0;
 
+    check_laser();
     check_buttons();
 
     if (buttons[TOUCH].pressed) {
@@ -231,7 +244,7 @@ LOOP_BEGINNING:
             MPU6050_read16(GX_REG, (int16_t*)&ax);
             MPU6050_read16(GY_REG, (int16_t*)&az);
 
-            // int len = sprintf((char*)buf, "A %hd %hd", az, ax);
+            //sprintf((char*)buf, "A %hd %hd", az, ax)
             buf[0] = 'A';
             ptr[0] = LIMIT(-az, MAX);
             ptr[1] = LIMIT(ax, MAX);

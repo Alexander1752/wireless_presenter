@@ -10,8 +10,8 @@
 
 struct Button {
     char ch;
-    volatile uint8_t pressed;
+    volatile uint8_t pressed, released;
     uint32_t lastDebounce;
 
-    Button(char _ch): ch(_ch), pressed(0), lastDebounce(0){}
+    Button(char _ch): ch(_ch), pressed(0), released(0), lastDebounce(0){}
 };
