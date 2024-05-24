@@ -15,7 +15,7 @@ void setup() {
 uint8_t buf[VW_MAX_MESSAGE_LEN + 1];
 uint8_t buflen;
 
-int16_t x, y, *ptr = (int16_t*)(buf + 1);
+int16_t x, y, *const ptr = (int16_t*)(buf + 1);
 
 void loop() {
     buflen = VW_MAX_MESSAGE_LEN;
