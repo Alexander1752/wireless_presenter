@@ -244,7 +244,7 @@ LOOP_BEGINNING:
             MPU6050_read16(GX_REG, (int16_t*)&ax);
             MPU6050_read16(GY_REG, (int16_t*)&az);
 
-            //sprintf((char*)buf, "A %hd %hd", az, ax)
+            //sprintf((char*)buf, "A %hd %hd", -az, ax)
             buf[0] = 'A';
             ptr[0] = LIMIT(-az, MAX);
             ptr[1] = LIMIT(ax, MAX);

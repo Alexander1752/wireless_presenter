@@ -13,6 +13,7 @@ from pynput.mouse import Button, Controller as MController
 from pynput.keyboard import Key, Controller as KController
 from subprocess import Popen as cmd
 from math import pow, copysign
+from time import sleep
 # log.basicConfig(level = log.INFO)
 
 keyboard = KController()
@@ -30,7 +31,7 @@ COMMANDS = {
     "n": lambda: exec("with keyboard.pressed(Key.shift): keyboard.press('n') or keyboard.release('n')"),
     "f": lambda: exec("with keyboard.pressed(Key.shift): keyboard.press(Key.f5) or keyboard.release(Key.f5)"),
     "POWERPOINT": lambda: cmd(['C:/Program Files/Microsoft Office/root/Office16/POWERPNT.EXE']),
-    "c": lambda: mouse.press(Button.left) or mouse.release(Button.left),
+    "c": lambda: mouse.press(Button.left) or sleep(.05) or mouse.release(Button.left),
 }
 
 PROCENT = 0.001
